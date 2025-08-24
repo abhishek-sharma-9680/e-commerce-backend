@@ -22,8 +22,19 @@ public class Product {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long productId;
+	
 	private String name;
+	
 	private Double price;
+	
 	private String description;
+	
+	private Integer stock;   // available quantity
+
+    private String category;
+
+    private String imageUrl;
+
+    private Boolean active = true;
 
 }

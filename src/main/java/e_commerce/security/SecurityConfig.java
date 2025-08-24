@@ -2,6 +2,7 @@ package e_commerce.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -40,6 +41,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Public APIs
+                        .requestMatchers(
+                            "/v3/api-docs/**",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("ADMIN", "CUSTOMER") // Both can GET
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN") // Only ADMIN
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")  // Only ADMIN
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN") // Only ADMIN
                         .anyRequest().authenticated() // Secure all others
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
