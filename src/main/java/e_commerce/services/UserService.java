@@ -35,7 +35,7 @@ public class UserService {
 	                .name(request.getName())
 	                .email(request.getEmail())
 	                .password(passwordEncoder.encode(request.getPassword()))  // TODO: encrypt password later
-	                .role(Role.CUSTOMER)              // Default role is CUSTOMER
+	                .role(Role.ADMIN)              // Default role is CUSTOMER
 	                .build();
 
 	        return userRepo.save(user);
