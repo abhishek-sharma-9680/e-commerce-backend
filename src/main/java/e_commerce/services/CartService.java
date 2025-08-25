@@ -1,9 +1,13 @@
 package e_commerce.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import e_commerce.dto.CartDto;
+import e_commerce.dto.CartItemDto;
 import e_commerce.model.Cart;
 import e_commerce.model.CartItem;
 import e_commerce.model.Product;
@@ -24,22 +28,52 @@ public class CartService {
 	
     
     
-    public Cart getCartByUser(Long userId) {
-        return cartRepository.findByUserId(userId)
+    public CartDto getCartByUser(Long userId) {
+        Cart cart= cartRepository.findByUserId(userId)
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
                     newCart.setUser(userRepository.findById(userId).orElseThrow());
                     return cartRepository.save(newCart);
                 });
-    }
+        List<CartItem>cartItemList=cart.getItems();
+        
+		List<CartItemDto>cartItemDtoList=new ArrayList<>();
+		
+		for(CartItem item:cartItemList) {
+			CartItemDto dto=new CartItemDto();
+			dto.setId(item.getId());
+			dto.setPrice(item.getProduct().getPrice());
+			dto.setProductId(item.getProduct().getProductId());
+			dto.setProductName(item.getProduct().getName());
+			dto.setQuantity(item.getQuantity());
+			cartItemDtoList.add(dto);
+		}
 
-    public Cart addProductToCart(Long userId, Long productId, int quantity) {
-        Cart cart = getCartByUser(userId);
+
+          CartDto cartDto=new CartDto();
+          cartDto.setId(cart.getId());
+          cartDto.setUserId(userId);
+          cartDto.setItems(cartItemDtoList);
+          return cartDto;
+    }
+    
+//----------------------------------------------------------------------------------------------------------------------------    
+
+    public CartDto addProductToCart(Long userId, Long productId, int quantity) {
+    	
+        Cart cart =  cartRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(userRepository.findById(userId).orElseThrow());
+                   return cartRepository.save(newCart);
+                });
         Product product = productRepository.findById(productId).orElseThrow();
 
         // ✅ Check stock before adding to cart
         if (product.getStock() < quantity) {
+        	
             throw new RuntimeException("Not enough stock available for product: " + product.getName());
+            
         }
 
         Optional<CartItem> existingItem = cart.getItems().stream()
@@ -60,14 +94,43 @@ public class CartService {
             item.setProduct(product);
             item.setQuantity(quantity);
             cart.getItems().add(item);
+            
         }
 
-        return cartRepository.save(cart);
+        Cart savedCart=cartRepository.save(cart);
+        
+        List<CartItem>cartItemList=savedCart.getItems();
+        
+        		List<CartItemDto>cartItemDtoList=new ArrayList<>();
+        		
+        		for(CartItem item:cartItemList) {
+        			CartItemDto dto=new CartItemDto();
+        			dto.setId(item.getId());
+        			dto.setPrice(item.getProduct().getPrice());
+        			dto.setProductId(productId);
+        			dto.setProductName(item.getProduct().getName());
+        			dto.setQuantity(item.getQuantity());
+        			cartItemDtoList.add(dto);
+        		}
+        
+        
+        CartDto cartDto=new CartDto();
+        cartDto.setId(savedCart.getId());
+        cartDto.setUserId(userId);
+        cartDto.setItems(cartItemDtoList);
+        return cartDto;
+        
     }
 
-
+//===============================================================================================================================
+    
     public Cart removeProductFromCart(Long userId, Long productId) {
-        Cart cart = getCartByUser(userId);
+    	  Cart cart =  cartRepository.findByUserId(userId)
+                  .orElseGet(() -> {
+                      Cart newCart = new Cart();
+                      newCart.setUser(userRepository.findById(userId).orElseThrow());
+                     return cartRepository.save(newCart);
+                  });
         cart.getItems().removeIf(item -> item.getProduct().getProductId().equals(productId));
         return cartRepository.save(cart);
     }

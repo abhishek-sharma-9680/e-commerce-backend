@@ -1,7 +1,6 @@
 package e_commerce.controller;
 
 import e_commerce.dto.OrderDto;
-import e_commerce.model.Order;
 import e_commerce.services.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
